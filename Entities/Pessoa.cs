@@ -1,4 +1,4 @@
-﻿// henrique agostinetto piva
+﻿// alifer granemann
 using AcademiaDoZe.Domain.ValueObjects;
 
 namespace AcademiaDoZe.Domain.Entities;
