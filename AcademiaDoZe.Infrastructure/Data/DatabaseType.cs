@@ -1,5 +1,4 @@
 // Alifer Granemannn
-// Alifer Granemannn
 
 namespace AcademiaDoZe.Infrastructure.Data;
 
