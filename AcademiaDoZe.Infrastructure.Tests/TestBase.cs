@@ -12,8 +12,7 @@ namespace AcademiaDoZe.Infrastructure.Tests;
 public abstract class TestBase
 {
     // ALTERE SOMENTE ESTA LINHA PARA TROCAR O BANCO
-    private const DatabaseType SelectedDatabaseType = DatabaseType.SqlServer;
-
+    private const DatabaseType SelectedDatabaseType = DatabaseType.Sqlite; 
     protected DatabaseType DatabaseType { get; }
 
     protected string ConnectionString { get; }
