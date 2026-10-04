@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-  <Compile Remove="AcademiaDoZe.Tests\**\*.cs" />
-  <Compile Remove="AcademiaDoZe.Infrastructure\**\*.cs" />
-  <Compile Remove="AcademiaDoZe.Infrastructure.Tests\**\*.cs" />
-  <Compile Remove="AcademiaDoZe.Application\**\*.cs" />
-</ItemGroup>
+	<ItemGroup>
+		<Compile Remove="AcademiaDoZe.Tests\**\*.cs" />
+		<Compile Remove="AcademiaDoZe.Infrastructure\**\*.cs" />
+		<Compile Remove="AcademiaDoZe.Infrastructure.Tests\**\*.cs" />
+		<Compile Remove="AcademiaDoZe.Application\**\*.cs" />
+		<Compile Remove="AcademiaDoZe.Presentation.AppMaui\**\*.cs" />
+	</ItemGroup>
 
 </Project>
