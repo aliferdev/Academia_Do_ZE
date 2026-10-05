@@ -1,17 +1,36 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AcademiaDoZe.Presentation.AppMaui.Message;
+using CommunityToolkit.Mvvm.Messaging;
 
-namespace AcademiaDoZe.Presentation.AppMaui
+namespace AcademiaDoZe.Presentation.AppMaui;
+
+public partial class App : Microsoft.Maui.Controls.Application
 {
-    public partial class App : Microsoft.Maui.Controls.Application
+    public App()
     {
-        public App()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
 
-        protected override Window CreateWindow(IActivationState? activationState)
+        AplicarTema();
+
+        WeakReferenceMessenger.Default.Register<TemaPreferencesUpdatedMessage>(
+            this,
+            (r, m) =>
+            {
+                AplicarTema();
+            });
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return new Window(new AppShell());
+    }
+
+    private void AplicarTema()
+    {
+        UserAppTheme = Preferences.Get("Tema", "system") switch
         {
-            return new Window(new AppShell());
-        }
+            "light" => AppTheme.Light,
+            "dark" => AppTheme.Dark,
+            _ => AppTheme.Unspecified,
+        };
     }
 }

@@ -28,7 +28,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>AcademiaDoZe.Presentation.AppMaui</ApplicationTitle>
+		<ApplicationTitle>Academia do Zé</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.academiadoze.presentation.appmaui</ApplicationId>
@@ -56,7 +56,7 @@
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		
+
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 
@@ -72,19 +72,31 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\academiadoZE_atualizado\AcademiaDoZe.Application\AcademiaDoZe.Application.csproj" />
+		<ProjectReference Include="..\AcademiaDoZe.Application\AcademiaDoZe.Application.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Views\DashboardListPage.xaml">
+		<MauiXaml Update="Views\ConfigPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Views\DashboardListPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Views\LogradouroListPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Views\LogradouroPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Views\ConfigPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LogradouroListPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LogradouroPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+	  </None>
 	</ItemGroup>
 
 </Project>

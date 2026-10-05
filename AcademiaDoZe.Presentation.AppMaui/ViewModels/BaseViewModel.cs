@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// Alifer Granemann
+using CommunityToolkit.Mvvm.ComponentModel;
 namespace AcademiaDoZe.Presentation.AppMaui.ViewModels;
 
 public partial class BaseViewModel : ObservableObject
