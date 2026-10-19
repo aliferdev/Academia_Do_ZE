@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 
 <Shell
  x:Class="AcademiaDoZe.Presentation.AppMaui.AppShell"
@@ -29,6 +29,14 @@
 
     </FlyoutItem>
 
+    <FlyoutItem Title="Colaboradores">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xea67;" />
+        </FlyoutItem.Icon>
+        <ShellContent
+            ContentTemplate="{DataTemplate views:ColaboradorListPage}"
+            Route="colaboradores" />
+    </FlyoutItem>
     <FlyoutItem
     Title="Configurações"
     Route="configuracoes">
@@ -41,3 +49,4 @@
     </FlyoutItem>
     
 </Shell>
+
