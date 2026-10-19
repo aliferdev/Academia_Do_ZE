@@ -1,3 +1,4 @@
+
 // Alifer Granemann
 
 using AcademiaDoZe.Application.DTOs;
@@ -16,8 +17,10 @@ public partial class ColaboradorViewModel : BaseViewModel
 
     private int _colaboradorId;
     private bool _isEditMode;
-
+    private string _cepBusca = string.Empty;
     private ColaboradorDto _colaborador = CriarColaboradorVazio();
+
+    private LogradouroDto? _logradouroSelecionado;
 
     public ColaboradorDto Colaborador
     {
@@ -37,6 +40,12 @@ public partial class ColaboradorViewModel : BaseViewModel
         set => SetProperty(ref _isEditMode, value);
     }
 
+    public string CepBusca
+    {
+        get => _cepBusca;
+        set => SetProperty(ref _cepBusca, value);
+    }
+
     public ObservableCollection<LogradouroDto> Logradouros { get; } = [];
 
     public ObservableCollection<AppColaboradorTipo> Tipos { get; } =
@@ -44,8 +53,6 @@ public partial class ColaboradorViewModel : BaseViewModel
 
     public ObservableCollection<AppColaboradorVinculo> Vinculos { get; } =
         [.. Enum.GetValues<AppColaboradorVinculo>()];
-
-    private LogradouroDto? _logradouroSelecionado;
 
     public LogradouroDto? LogradouroSelecionado
     {
@@ -55,6 +62,9 @@ public partial class ColaboradorViewModel : BaseViewModel
             if (SetProperty(ref _logradouroSelecionado, value))
             {
                 Colaborador.Endereco = value;
+
+                if (value is not null)
+                    CepBusca = value.Cep;
             }
         }
     }
@@ -95,16 +105,15 @@ public partial class ColaboradorViewModel : BaseViewModel
         {
             IsEditMode = true;
             Title = "Editar Colaborador";
-            await LoadColaboradorAsync();
+            await CarregarColaboradorAsync();
         }
         else
         {
             IsEditMode = false;
             Title = "Novo Colaborador";
-
-            ColaboradorId = 0;
             Colaborador = CriarColaboradorVazio();
             LogradouroSelecionado = null;
+            CepBusca = string.Empty;
         }
     }
 
@@ -112,11 +121,8 @@ public partial class ColaboradorViewModel : BaseViewModel
     {
         try
         {
-            using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
-
-            var resultado = await _logradouroService.ObterTodosAsync(
-                cts.Token);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var resultado = await _logradouroService.ObterTodosAsync(cts.Token);
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -135,7 +141,172 @@ public partial class ColaboradorViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private async Task BuscarCpfAsync()
+    {
+        if (IsBusy)
+            return;
+
+        if (string.IsNullOrWhiteSpace(Colaborador.Cpf))
+        {
+            await ExibirAlertaAsync("CPF", "Digite o CPF para pesquisar.");
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            var resultado = await _colaboradorService.ObterPorCpfAsync(
+                Colaborador.Cpf.Trim(),
+                cts.Token);
+
+            if (resultado is null)
+            {
+                await ExibirAlertaAsync(
+                    "Não encontrado",
+                    "Não existe colaborador cadastrado com esse CPF.");
+
+                return;
+            }
+
+            Colaborador = resultado;
+            ColaboradorId = resultado.Id;
+            IsEditMode = true;
+            Title = "Editar Colaborador";
+
+            LogradouroSelecionado = resultado.Endereco is null
+                ? null
+                : Logradouros.FirstOrDefault(
+                    l => l.Id == resultado.Endereco.Id);
+
+            CepBusca = resultado.Endereco?.Cep ?? string.Empty;
+        }
+        catch (OperationCanceledException)
+        {
+            await ExibirAlertaAsync(
+                "Tempo esgotado",
+                "A pesquisa demorou demais. Tente novamente.");
+        }
+        catch (Exception ex)
+        {
+            await ExibirAlertaAsync(
+                "Erro",
+                $"Não foi possível pesquisar o CPF: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SelecionarFotoAsync()
+    {
+        try
+        {
+            var arquivo = await FilePicker.Default.PickAsync(
+                new PickOptions
+                {
+                    PickerTitle = "Selecione a foto do colaborador",
+                    FileTypes = FilePickerFileType.Images
+                });
+
+            if (arquivo is null)
+                return;
+
+            await using var stream = await arquivo.OpenReadAsync();
+            using var memoria = new MemoryStream();
+
+            await stream.CopyToAsync(memoria);
+
+            Colaborador.Foto = new ArquivoDto
+            {
+                Conteudo = memoria.ToArray()
+            };
+
+            OnPropertyChanged(nameof(Colaborador));
+        }
+        catch (Exception ex)
+        {
+            await ExibirAlertaAsync(
+                "Erro",
+                $"Não foi possível selecionar a imagem: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task BuscarCepAsync()
+    {
+        if (IsBusy)
+            return;
+
+        if (string.IsNullOrWhiteSpace(CepBusca))
+        {
+            await ExibirAlertaAsync("CEP", "Digite um CEP para pesquisar.");
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            var resultado = await _logradouroService.ObterPorCepAsync(
+                CepBusca.Trim(),
+                cts.Token);
+
+            if (resultado is null)
+            {
+                await ExibirAlertaAsync(
+                    "CEP não encontrado",
+                    "Esse CEP não está cadastrado no banco de dados. Cadastre o logradouro primeiro.");
+
+                return;
+            }
+
+            var existente = Logradouros.FirstOrDefault(
+                l => l.Id == resultado.Id);
+
+            if (existente is null)
+            {
+                Logradouros.Add(resultado);
+                existente = resultado;
+            }
+
+            LogradouroSelecionado = existente;
+        }
+        catch (OperationCanceledException)
+        {
+            await ExibirAlertaAsync(
+                "Tempo esgotado",
+                "A consulta do CEP demorou demais. Tente novamente.");
+        }
+        catch (ArgumentException ex)
+        {
+            await ExibirAlertaAsync("CEP inválido", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await ExibirAlertaAsync(
+                "Erro na consulta",
+                $"Não foi possível consultar o CEP: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task LoadColaboradorAsync()
+    {
+        await CarregarColaboradorAsync();
+    }
+
+    private async Task CarregarColaboradorAsync()
     {
         if (ColaboradorId <= 0)
             return;
@@ -144,8 +315,7 @@ public partial class ColaboradorViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
             var resultado = await _colaboradorService.ObterPorIdAsync(
                 ColaboradorId,
@@ -153,10 +323,7 @@ public partial class ColaboradorViewModel : BaseViewModel
 
             if (resultado is null)
             {
-                await ExibirAlertaAsync(
-                    "Aviso",
-                    "Colaborador não encontrado.");
-
+                await ExibirAlertaAsync("Aviso", "Colaborador não encontrado.");
                 return;
             }
 
@@ -166,6 +333,8 @@ public partial class ColaboradorViewModel : BaseViewModel
                 ? null
                 : Logradouros.FirstOrDefault(
                     l => l.Id == resultado.Endereco.Id);
+
+            CepBusca = resultado.Endereco?.Cep ?? string.Empty;
         }
         catch (OperationCanceledException)
         {
@@ -198,8 +367,7 @@ public partial class ColaboradorViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
             Colaborador.Nome = Colaborador.Nome.Trim();
             Colaborador.Cpf = Colaborador.Cpf.Trim();
@@ -207,19 +375,17 @@ public partial class ColaboradorViewModel : BaseViewModel
             Colaborador.Email = string.IsNullOrWhiteSpace(Colaborador.Email)
                 ? null
                 : Colaborador.Email.Trim();
+
             Colaborador.Numero = Colaborador.Numero.Trim();
-            Colaborador.Complemento =
-                string.IsNullOrWhiteSpace(Colaborador.Complemento)
-                    ? null
-                    : Colaborador.Complemento.Trim();
+            Colaborador.Complemento = string.IsNullOrWhiteSpace(Colaborador.Complemento)
+                ? null
+                : Colaborador.Complemento.Trim();
 
             Colaborador.Endereco = LogradouroSelecionado;
 
             if (IsEditMode)
             {
-                await _colaboradorService.AtualizarAsync(
-                    Colaborador,
-                    cts.Token);
+                await _colaboradorService.AtualizarAsync(Colaborador, cts.Token);
 
                 await ExibirAlertaAsync(
                     "Sucesso",
@@ -227,9 +393,7 @@ public partial class ColaboradorViewModel : BaseViewModel
             }
             else
             {
-                await _colaboradorService.AdicionarAsync(
-                    Colaborador,
-                    cts.Token);
+                await _colaboradorService.AdicionarAsync(Colaborador, cts.Token);
 
                 await ExibirAlertaAsync(
                     "Sucesso",
@@ -287,7 +451,7 @@ public partial class ColaboradorViewModel : BaseViewModel
             erros.Add("Número do endereço é obrigatório.");
 
         if (LogradouroSelecionado is null)
-            erros.Add("Selecione um logradouro.");
+            erros.Add("Busque um CEP cadastrado e selecione o logradouro.");
 
         if (Colaborador.DataNascimento > DateOnly.FromDateTime(DateTime.Today))
             erros.Add("A data de nascimento não pode estar no futuro.");
@@ -298,16 +462,14 @@ public partial class ColaboradorViewModel : BaseViewModel
         if (!IsEditMode && string.IsNullOrWhiteSpace(Colaborador.Senha))
             erros.Add("Senha é obrigatória para um novo colaborador.");
 
-        if (erros.Count > 0)
-        {
-            await ExibirAlertaAsync(
-                "Verifique os campos",
-                string.Join("\n", erros));
+        if (erros.Count == 0)
+            return true;
 
-            return false;
-        }
+        await ExibirAlertaAsync(
+            "Verifique os campos",
+            string.Join("\n", erros));
 
-        return true;
+        return false;
     }
 
     private static async Task ExibirAlertaAsync(
@@ -315,11 +477,6 @@ public partial class ColaboradorViewModel : BaseViewModel
         string mensagem)
     {
         if (Shell.Current is not null)
-        {
-            await Shell.Current.DisplayAlertAsync(
-                titulo,
-                mensagem,
-                "OK");
-        }
+            await Shell.Current.DisplayAlertAsync(titulo, mensagem, "OK");
     }
 }

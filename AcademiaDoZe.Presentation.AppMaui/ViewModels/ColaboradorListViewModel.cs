@@ -1,9 +1,9 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Enums;
 using AcademiaDoZe.Application.Interfaces;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 
@@ -24,14 +24,21 @@ public partial class ColaboradorListViewModel : BaseViewModel
         "Vínculo"
     ];
 
-    [ObservableProperty]
-    private string searchText = string.Empty;
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetProperty(ref _searchText, value);
+    }
 
-    [ObservableProperty]
-    private string selectedFilterType = "Nome";
+    private string _selectedFilterType = "Nome";
+    public string SelectedFilterType
+    {
+        get => _selectedFilterType;
+        set => SetProperty(ref _selectedFilterType, value);
+    }
 
-    public ColaboradorListViewModel(
-        IColaboradorService colaboradorService)
+    public ColaboradorListViewModel(IColaboradorService colaboradorService)
     {
         _colaboradorService = colaboradorService;
         Title = "Colaboradores";
@@ -48,23 +55,19 @@ public partial class ColaboradorListViewModel : BaseViewModel
             IsBusy = true;
 
             using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
+                TimeSpan.FromSeconds(10));
 
-            var resultado = await _colaboradorService
-                .ObterTodosAsync(cts.Token);
+            var resultado = await _colaboradorService.ObterTodosAsync(cts.Token);
 
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                Colaboradores.Clear();
+            Colaboradores.Clear();
 
-                foreach (var colaborador in resultado)
-                    Colaboradores.Add(colaborador);
-            });
+            foreach (var colaborador in resultado)
+                Colaboradores.Add(colaborador);
         }
         catch (OperationCanceledException)
         {
             await ExibirErroAsync(
-                "A operação demorou demais. Tente novamente.");
+                "O carregamento demorou demais. Tente novamente.");
         }
         catch (Exception ex)
         {
@@ -88,46 +91,41 @@ public partial class ColaboradorListViewModel : BaseViewModel
             IsBusy = true;
 
             using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
+                TimeSpan.FromSeconds(10));
 
-            var colaboradores = await _colaboradorService
-                .ObterTodosAsync(cts.Token);
-
+            var todos = await _colaboradorService.ObterTodosAsync(cts.Token);
             var termo = SearchText.Trim();
 
-            var resultado = colaboradores.Where(colaborador =>
+            var resultado = todos.Where(colaborador =>
             {
                 if (string.IsNullOrWhiteSpace(termo))
                     return true;
 
                 return SelectedFilterType switch
                 {
-                    "Nome" => colaborador.Nome.Contains(
-                        termo, StringComparison.OrdinalIgnoreCase),
+                    "Nome" => (colaborador.Nome ?? string.Empty)
+                        .Contains(termo, StringComparison.OrdinalIgnoreCase),
 
-                    "CPF" => colaborador.Cpf.Contains(
-                        termo, StringComparison.OrdinalIgnoreCase),
+                    "CPF" => (colaborador.Cpf ?? string.Empty)
+                        .Contains(termo, StringComparison.OrdinalIgnoreCase),
 
-                    "Email" => (colaborador.Email ?? string.Empty).Contains(
-                        termo, StringComparison.OrdinalIgnoreCase),
+                    "Email" => (colaborador.Email ?? string.Empty)
+                        .Contains(termo, StringComparison.OrdinalIgnoreCase),
 
-                    "Tipo" => colaborador.Tipo.GetDisplayName().Contains(
-                        termo, StringComparison.OrdinalIgnoreCase),
+                    "Tipo" => colaborador.Tipo.GetDisplayName()
+                        .Contains(termo, StringComparison.OrdinalIgnoreCase),
 
-                    "Vínculo" => colaborador.Vinculo.GetDisplayName().Contains(
-                        termo, StringComparison.OrdinalIgnoreCase),
+                    "Vínculo" => colaborador.Vinculo.GetDisplayName()
+                        .Contains(termo, StringComparison.OrdinalIgnoreCase),
 
                     _ => false
                 };
             }).ToList();
 
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                Colaboradores.Clear();
+            Colaboradores.Clear();
 
-                foreach (var colaborador in resultado)
-                    Colaboradores.Add(colaborador);
-            });
+            foreach (var colaborador in resultado)
+                Colaboradores.Add(colaborador);
         }
         catch (OperationCanceledException)
         {
@@ -137,7 +135,76 @@ public partial class ColaboradorListViewModel : BaseViewModel
         catch (Exception ex)
         {
             await ExibirErroAsync(
-                $"Não foi possível pesquisar os colaboradores: {ex.Message}");
+                $"Não foi possível pesquisar: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task NovoColaboradorAsync()
+    {
+        await Shell.Current.GoToAsync("colaborador");
+    }
+
+    [RelayCommand]
+    private async Task EditarColaboradorAsync(ColaboradorDto? colaborador)
+    {
+        if (colaborador is null)
+            return;
+
+        await Shell.Current.GoToAsync(
+            "colaborador",
+            new Dictionary<string, object>
+            {
+                ["Id"] = colaborador.Id
+            });
+    }
+
+    [RelayCommand]
+    private async Task ExcluirColaboradorAsync(ColaboradorDto? colaborador)
+    {
+        if (colaborador is null || IsBusy)
+            return;
+
+        bool confirmar = await Shell.Current.DisplayAlertAsync(
+            "Excluir colaborador",
+            $"Deseja realmente excluir o colaborador {colaborador.Nome}?",
+            "Excluir",
+            "Cancelar");
+
+        if (!confirmar)
+            return;
+
+        try
+        {
+            IsBusy = true;
+
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(10));
+
+            await _colaboradorService.RemoverAsync(
+                colaborador.Id,
+                cts.Token);
+
+            Colaboradores.Remove(colaborador);
+
+            await Shell.Current.DisplayAlertAsync(
+                "Sucesso",
+                "Colaborador excluído com sucesso!",
+                "OK");
+        }
+        catch (OperationCanceledException)
+        {
+            await ExibirErroAsync(
+                "A exclusão demorou demais. Tente novamente.");
+        }
+        catch (Exception ex)
+        {
+            await ExibirErroAsync(
+                $"Não foi possível excluir o colaborador: {ex.Message}");
         }
         finally
         {
@@ -164,7 +231,7 @@ public partial class ColaboradorListViewModel : BaseViewModel
     {
         if (Shell.Current is not null)
         {
-            await Shell.Current.DisplayAlert(
+            await Shell.Current.DisplayAlertAsync(
                 "Atenção",
                 mensagem,
                 "OK");

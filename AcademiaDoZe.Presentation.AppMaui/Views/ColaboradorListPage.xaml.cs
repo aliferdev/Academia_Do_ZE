@@ -1,3 +1,4 @@
+
 // Alifer Granemann
 
 using AcademiaDoZe.Presentation.AppMaui.ViewModels;
@@ -18,6 +19,16 @@ public partial class ColaboradorListPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        await _viewModel.LoadColaboradoresCommand.ExecuteAsync(null);
+    }
+
+    private async void OnLimparPesquisaClicked(
+        object sender,
+        EventArgs e)
+    {
+        _viewModel.SearchText = string.Empty;
+        _viewModel.SelectedFilterType = "Nome";
 
         await _viewModel.LoadColaboradoresCommand.ExecuteAsync(null);
     }

@@ -1,4 +1,6 @@
-﻿//Alifer Granemann
+﻿
+// Alifer Granemann
+
 using System.Data.Common;
 using AcademiaDoZe.Domain.Entities;
 using AcademiaDoZe.Domain.Enums;
@@ -15,7 +17,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         SELECT
             c.id_colaborador,
             c.cpf,
-            c.nome,
+            c.nome AS nome_colaborador,
             c.nascimento,
             c.telefone,
             c.email,
@@ -29,7 +31,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             c.vinculo,
             l.id_logradouro,
             l.cep,
-            l.nome,
+            l.nome AS nome_logradouro,
             l.bairro,
             l.cidade,
             l.estado,
@@ -49,8 +51,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         int id,
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} WHERE c.id_colaborador = @Id";
+        var query = $"{BaseSelectQuery} WHERE c.id_colaborador = @Id";
 
         try
         {
@@ -78,8 +79,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
     public async Task<IEnumerable<Colaborador>> ObterTodos(
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} ORDER BY c.nome";
+        var query = $"{BaseSelectQuery} ORDER BY c.nome";
 
         try
         {
@@ -92,9 +92,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             var colaboradores = new List<Colaborador>();
 
             while (await reader.ReadAsync(cancellationToken))
-            {
                 colaboradores.Add(Map(reader));
-            }
 
             return colaboradores;
         }
@@ -114,35 +112,15 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         var query = FormatInsertQuery(@"
             INSERT INTO tb_colaborador
             (
-                cpf,
-                nome,
-                nascimento,
-                telefone,
-                email,
-                logradouro_id,
-                numero,
-                complemento,
-                senha,
-                foto,
-                data_admissao,
-                tipo,
-                vinculo
+                cpf, nome, nascimento, telefone, email,
+                logradouro_id, numero, complemento, senha, foto,
+                data_admissao, tipo, vinculo
             )
             VALUES
             (
-                @Cpf,
-                @Nome,
-                @Nascimento,
-                @Telefone,
-                @Email,
-                @LogradouroId,
-                @Numero,
-                @Complemento,
-                @Senha,
-                @Foto,
-                @DataAdmissao,
-                @Tipo,
-                @Vinculo
+                @Cpf, @Nome, @Nascimento, @Telefone, @Email,
+                @LogradouroId, @Numero, @Complemento, @Senha, @Foto,
+                @DataAdmissao, @Tipo, @Vinculo
             )");
 
         try
@@ -155,17 +133,11 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             var id = Convert.ToInt32(
                 await command.ExecuteScalarAsync(cancellationToken));
 
-            var colaborador =
-                await ObterPorId(id, cancellationToken);
+            var colaborador = await ObterPorId(id, cancellationToken);
 
-            if (colaborador is null)
-            {
-                throw new InfrastructureException(
-                    "ERRO_OBTER_COLABORADOR_INSERIDO",
-                    $"Não foi possível obter o colaborador inserido com ID {id}.");
-            }
-
-            return colaborador;
+            return colaborador ?? throw new InfrastructureException(
+                "ERRO_OBTER_COLABORADOR_INSERIDO",
+                $"Não foi possível obter o colaborador inserido com ID {id}.");
         }
         catch (DbException ex)
         {
@@ -203,11 +175,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Id",
-                entity.Id);
-
+            DbProvider.AddParameter(command, "@Id", entity.Id);
             AdicionarParametros(command, entity);
 
             var rowsAffected =
@@ -244,15 +212,9 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Id",
-                id);
+            DbProvider.AddParameter(command, "@Id", id);
 
-            var rowsAffected =
-                await command.ExecuteNonQueryAsync(cancellationToken);
-
-            return rowsAffected > 0;
+            return await command.ExecuteNonQueryAsync(cancellationToken) > 0;
         }
         catch (DbException ex)
         {
@@ -267,18 +229,14 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         Cpf cpf,
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} WHERE c.cpf = @Cpf";
+        var query = $"{BaseSelectQuery} WHERE c.cpf = @Cpf";
 
         try
         {
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Cpf",
-                cpf.Valor);
+            DbProvider.AddParameter(command, "@Cpf", cpf.Valor);
 
             await using var reader =
                 await command.ExecuteReaderAsync(cancellationToken);
@@ -300,18 +258,14 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         Email email,
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} WHERE c.email = @Email";
+        var query = $"{BaseSelectQuery} WHERE c.email = @Email";
 
         try
         {
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Email",
-                email.Valor);
+            DbProvider.AddParameter(command, "@Email", email.Valor);
 
             await using var reader =
                 await command.ExecuteReaderAsync(cancellationToken);
@@ -345,22 +299,12 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
+            DbProvider.AddParameter(command, "@Cpf", cpf.Valor);
             DbProvider.AddParameter(
-                command,
-                "@Cpf",
-                cpf.Valor);
+                command, "@Id", id.HasValue ? id.Value : DBNull.Value);
 
-            DbProvider.AddParameter(
-                command,
-                "@Id",
-                id.HasValue
-                    ? id.Value
-                    : DBNull.Value);
-
-            var count = Convert.ToInt32(
-                await command.ExecuteScalarAsync(cancellationToken));
-
-            return count > 0;
+            return Convert.ToInt32(
+                await command.ExecuteScalarAsync(cancellationToken)) > 0;
         }
         catch (DbException ex)
         {
@@ -387,22 +331,12 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
+            DbProvider.AddParameter(command, "@Email", email.Valor);
             DbProvider.AddParameter(
-                command,
-                "@Email",
-                email.Valor);
+                command, "@Id", id.HasValue ? id.Value : DBNull.Value);
 
-            DbProvider.AddParameter(
-                command,
-                "@Id",
-                id.HasValue
-                    ? id.Value
-                    : DBNull.Value);
-
-            var count = Convert.ToInt32(
-                await command.ExecuteScalarAsync(cancellationToken));
-
-            return count > 0;
+            return Convert.ToInt32(
+                await command.ExecuteScalarAsync(cancellationToken)) > 0;
         }
         catch (DbException ex)
         {
@@ -417,18 +351,14 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         ColaboradorTipo tipo,
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} WHERE c.tipo = @Tipo ORDER BY c.nome";
+        var query = $"{BaseSelectQuery} WHERE c.tipo = @Tipo ORDER BY c.nome";
 
         try
         {
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Tipo",
-                (int)tipo);
+            DbProvider.AddParameter(command, "@Tipo", (int)tipo);
 
             await using var reader =
                 await command.ExecuteReaderAsync(cancellationToken);
@@ -436,9 +366,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             var colaboradores = new List<Colaborador>();
 
             while (await reader.ReadAsync(cancellationToken))
-            {
                 colaboradores.Add(Map(reader));
-            }
 
             return colaboradores;
         }
@@ -455,18 +383,14 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         ColaboradorVinculo vinculo,
         CancellationToken cancellationToken = default)
     {
-        var query =
-            $"{BaseSelectQuery} WHERE c.vinculo = @Vinculo ORDER BY c.nome";
+        var query = $"{BaseSelectQuery} WHERE c.vinculo = @Vinculo ORDER BY c.nome";
 
         try
         {
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Vinculo",
-                (int)vinculo);
+            DbProvider.AddParameter(command, "@Vinculo", (int)vinculo);
 
             await using var reader =
                 await command.ExecuteReaderAsync(cancellationToken);
@@ -474,9 +398,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             var colaboradores = new List<Colaborador>();
 
             while (await reader.ReadAsync(cancellationToken))
-            {
                 colaboradores.Add(Map(reader));
-            }
 
             return colaboradores;
         }
@@ -504,20 +426,10 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
             await using var command =
                 await CreateCommandAsync(query, cancellationToken);
 
-            DbProvider.AddParameter(
-                command,
-                "@Id",
-                id);
+            DbProvider.AddParameter(command, "@Id", id);
+            DbProvider.AddParameter(command, "@Senha", novaSenha.Valor);
 
-            DbProvider.AddParameter(
-                command,
-                "@Senha",
-                novaSenha.Valor);
-
-            var rowsAffected =
-                await command.ExecuteNonQueryAsync(cancellationToken);
-
-            return rowsAffected > 0;
+            return await command.ExecuteNonQueryAsync(cancellationToken) > 0;
         }
         catch (DbException ex)
         {
@@ -528,65 +440,42 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         }
     }
 
-    public static Colaborador Map(
-        DbDataReader reader,
-        string nomeColumn = "nome")
+    public static Colaborador Map(DbDataReader reader)
     {
         try
         {
-            var id =
-                Convert.ToInt32(reader["id_colaborador"]);
+            var id = Convert.ToInt32(reader["id_colaborador"]);
+            var cpf = Convert.ToString(reader["cpf"])!;
+            var nome = Convert.ToString(reader["nome_colaborador"])!;
 
-            var cpf =
-                Convert.ToString(reader["cpf"])!;
+            var dataNascimento = DateOnly.FromDateTime(
+                Convert.ToDateTime(reader["nascimento"]));
 
-            var nome =
-                Convert.ToString(reader[nomeColumn])!;
+            var telefone = Convert.ToString(reader["telefone"])!;
+            var email = Convert.ToString(reader["email"])!;
+            var numero = Convert.ToString(reader["numero"])!;
 
-            var dataNascimento =
-                DateOnly.FromDateTime(
-                    Convert.ToDateTime(reader["nascimento"]));
+            var complemento = reader["complemento"] == DBNull.Value
+                ? string.Empty
+                : Convert.ToString(reader["complemento"])!;
 
-            var telefone =
-                Convert.ToString(reader["telefone"])!;
+            var senha = Convert.ToString(reader["senha"])!;
 
-            var email =
-                Convert.ToString(reader["email"])!;
+            var dataAdmissao = DateOnly.FromDateTime(
+                Convert.ToDateTime(reader["data_admissao"]));
 
-            var numero =
-                Convert.ToString(reader["numero"])!;
+            var tipo = (ColaboradorTipo)Convert.ToInt32(reader["tipo"]);
+            var vinculo = (ColaboradorVinculo)Convert.ToInt32(reader["vinculo"]);
 
-            var complemento =
-                reader["complemento"] == DBNull.Value
-                    ? string.Empty
-                    : Convert.ToString(reader["complemento"])!;
-
-            var senha =
-                Convert.ToString(reader["senha"])!;
-
-            var dataAdmissao =
-                DateOnly.FromDateTime(
-                    Convert.ToDateTime(reader["data_admissao"]));
-
-            var tipo =
-                (ColaboradorTipo)
-                Convert.ToInt32(reader["tipo"]);
-
-            var vinculo =
-                (ColaboradorVinculo)
-                Convert.ToInt32(reader["vinculo"]);
-
-            byte[]? fotoBytes =
-                reader["foto"] == DBNull.Value
-                    ? null
-                    : (byte[])reader["foto"];
+            byte[]? fotoBytes = reader["foto"] == DBNull.Value
+                ? null
+                : (byte[])reader["foto"];
 
             Arquivo? foto = null;
 
-            if (fotoBytes != null)
+            if (fotoBytes is not null)
             {
-                var fotoResult =
-                    Arquivo.Criar(fotoBytes);
+                var fotoResult = Arquivo.Criar(fotoBytes);
 
                 if (fotoResult.IsFailure)
                 {
@@ -599,26 +488,39 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
                 foto = fotoResult.Value;
             }
 
-            var logradouro =
-                LogradouroRepository.Map(reader);
+            // Mapeia o logradouro usando os aliases exclusivos da consulta.
+            var logradouroResult = Logradouro.Criar(
+                Convert.ToInt32(reader["id_logradouro"]),
+                Convert.ToString(reader["cep"])!,
+                Convert.ToString(reader["nome_logradouro"])!,
+                Convert.ToString(reader["bairro"])!,
+                Convert.ToString(reader["cidade"])!,
+                Convert.ToString(reader["estado"])!,
+                Convert.ToString(reader["pais"])!);
 
-            var result =
-                Colaborador.Criar(
-                    id: id,
-                    nome: nome,
-                    cpf: cpf,
-                    dataNascimento: dataNascimento,
-                    telefone: telefone,
-                    email: email,
-                    endereco: logradouro,
-                    numero: numero,
-                    complemento: complemento,
-                    senha: senha,
-                    foto: foto!,
-                    dataAdmissao: dataAdmissao,
-                    tipo: tipo,
-                    vinculo: vinculo
-                );
+            if (logradouroResult.IsFailure)
+            {
+                throw new InfrastructureException(
+                    "ERRO_MAPEAMENTO_LOGRADOURO",
+                    $"Erro ao mapear logradouro do colaborador ID {id}: " +
+                    $"{string.Join(", ", logradouroResult.Notifications.Select(n => n.Mensagem))}");
+            }
+
+            var result = Colaborador.Criar(
+                id: id,
+                nome: nome,
+                cpf: cpf,
+                dataNascimento: dataNascimento,
+                telefone: telefone,
+                email: email,
+                endereco: logradouroResult.Value!,
+                numero: numero,
+                complemento: complemento,
+                senha: senha,
+                foto: foto!,
+                dataAdmissao: dataAdmissao,
+                tipo: tipo,
+                vinculo: vinculo);
 
             if (result.IsFailure)
             {
@@ -630,8 +532,7 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
 
             return result.Value!;
         }
-        catch (Exception ex)
-            when (ex is not InfrastructureException)
+        catch (Exception ex) when (ex is not InfrastructureException)
         {
             throw new InfrastructureException(
                 "ERRO_MAPEAMENTO_COLABORADOR",
@@ -644,40 +545,13 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
         DbCommand command,
         Colaborador entity)
     {
-        DbProvider.AddParameter(
-            command,
-            "@Cpf",
-            entity.Cpf.Valor);
-
-        DbProvider.AddParameter(
-            command,
-            "@Nome",
-            entity.Nome);
-
-        DbProvider.AddParameter(
-            command,
-            "@Nascimento",
-            entity.DataNascimento);
-
-        DbProvider.AddParameter(
-            command,
-            "@Telefone",
-            entity.Telefone.Valor);
-
-        DbProvider.AddParameter(
-            command,
-            "@Email",
-            entity.Email.Valor);
-
-        DbProvider.AddParameter(
-            command,
-            "@LogradouroId",
-            entity.Endereco.LogradouroId);
-
-        DbProvider.AddParameter(
-            command,
-            "@Numero",
-            entity.Endereco.Numero);
+        DbProvider.AddParameter(command, "@Cpf", entity.Cpf.Valor);
+        DbProvider.AddParameter(command, "@Nome", entity.Nome);
+        DbProvider.AddParameter(command, "@Nascimento", entity.DataNascimento);
+        DbProvider.AddParameter(command, "@Telefone", entity.Telefone.Valor);
+        DbProvider.AddParameter(command, "@Email", entity.Email.Valor);
+        DbProvider.AddParameter(command, "@LogradouroId", entity.Endereco.LogradouroId);
+        DbProvider.AddParameter(command, "@Numero", entity.Endereco.Numero);
 
         DbProvider.AddParameter(
             command,
@@ -686,29 +560,10 @@ public class ColaboradorRepository : BaseRepository, IColaboradorRepository
                 ? DBNull.Value
                 : entity.Endereco.Complemento);
 
-        DbProvider.AddParameter(
-            command,
-            "@Senha",
-            entity.Senha.Valor);
-
-        DbProvider.AddParameter(
-            command,
-            "@Foto",
-            entity.Foto.Conteudo);
-
-        DbProvider.AddParameter(
-            command,
-            "@DataAdmissao",
-            entity.DataAdmissao);
-
-        DbProvider.AddParameter(
-            command,
-            "@Tipo",
-            (int)entity.Tipo);
-
-        DbProvider.AddParameter(
-            command,
-            "@Vinculo",
-            (int)entity.Vinculo);
+        DbProvider.AddParameter(command, "@Senha", entity.Senha.Valor);
+        DbProvider.AddParameter(command, "@Foto", entity.Foto.Conteudo);
+        DbProvider.AddParameter(command, "@DataAdmissao", entity.DataAdmissao);
+        DbProvider.AddParameter(command, "@Tipo", (int)entity.Tipo);
+        DbProvider.AddParameter(command, "@Vinculo", (int)entity.Vinculo);
     }
 }
