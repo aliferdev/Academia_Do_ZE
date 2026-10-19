@@ -1,4 +1,7 @@
-﻿using AcademiaDoZe.Presentation.AppMaui.Views;
+﻿
+using System.Diagnostics;
+using AcademiaDoZe.Presentation.AppMaui.Views;
+
 namespace AcademiaDoZe.Presentation.AppMaui;
 
 public partial class AppShell : Shell
@@ -6,15 +9,27 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
+
         RegisterRoutes();
 
+        Navigating += OnShellNavigating;
+        Navigated += OnShellNavigated;
     }
-    // O Routing.RegisterRoute é necessário para que o Shell do MAUI reconheça e permita a navegação
-    // para páginas que não estão diretamente no TabBar ou Flyout,
-    // como páginas de detalhe, edição ou cadastro.
+
     private static void RegisterRoutes()
     {
         Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
         Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
+    }
+
+    private void OnShellNavigating(object? sender, ShellNavigatingEventArgs e)
+    {
+        Debug.WriteLine($"[NAVEGACAO] Iniciando: {e.Target.Location}");
+    }
+
+    private void OnShellNavigated(object? sender, ShellNavigatedEventArgs e)
+    {
+        Debug.WriteLine($"[NAVEGACAO] Concluída: {e.Current.Location}");
+        Debug.WriteLine($"[NAVEGACAO] Página atual: {CurrentPage?.GetType().FullName}");
     }
 }

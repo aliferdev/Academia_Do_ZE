@@ -1,52 +1,35 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 
 <Shell
- x:Class="AcademiaDoZe.Presentation.AppMaui.AppShell"
- xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
- xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
- xmlns:views="clr-namespace:AcademiaDoZe.Presentation.AppMaui.Views"
- Title="Academia do Zé">
+    x:Class="AcademiaDoZe.Presentation.AppMaui.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:AcademiaDoZe.Presentation.AppMaui.Views"
+    Title="Academia do Zé"
+    FlyoutBehavior="Flyout">
 
-    <FlyoutItem
-    Title="Dashboard"
-    Route="dashboard">
-
+    <FlyoutItem Title="Dashboard" Route="dashboard">
         <ShellContent
-        Title="Dashboard"
-        ContentTemplate="{DataTemplate views:DashboardListPage}"
-        Route="dashboardPage" />
-
+            Title="Dashboard"
+            ContentTemplate="{DataTemplate views:DashboardListPage}" />
     </FlyoutItem>
 
-    <FlyoutItem
-    Title="Logradouros"
-    Route="logradouros">
-
+    <FlyoutItem Title="Logradouros" Route="logradouros">
         <ShellContent
-        Title="Logradouros"
-        ContentTemplate="{DataTemplate views:LogradouroListPage}"
-        Route="logradourosPage" />
-
+            Title="Logradouros"
+            ContentTemplate="{DataTemplate views:LogradouroListPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Colaboradores">
-        <FlyoutItem.Icon>
-            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xea67;" />
-        </FlyoutItem.Icon>
+    <FlyoutItem Title="Colaboradores" Route="colaboradores">
         <ShellContent
-            ContentTemplate="{DataTemplate views:ColaboradorListPage}"
-            Route="colaboradores" />
+            Title="Colaboradores"
+            ContentTemplate="{DataTemplate views:ColaboradorListPage}" />
     </FlyoutItem>
-    <FlyoutItem
-    Title="Configurações"
-    Route="configuracoes">
 
+    <FlyoutItem Title="Configurações" Route="configuracoes">
         <ShellContent
-        Title="Configurações"
-        ContentTemplate="{DataTemplate views:ConfigPage}"
-        Route="configuracoesPage" />
-
+            Title="Configurações"
+            ContentTemplate="{DataTemplate views:ConfigPage}" />
     </FlyoutItem>
-    
+
 </Shell>
-
