@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AcademiaDoZe.Presentation.AppMaui.Views.AlunoListPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Alunos">
+
+    <Grid
+        Padding="20"
+        RowDefinitions="Auto,Auto,Auto,*"
+        RowSpacing="12">
+
+        <Label
+            Grid.Row="0"
+            Text="Alunos"
+            FontSize="28"
+            FontAttributes="Bold" />
+
+        <VerticalStackLayout Grid.Row="1" Spacing="8">
+
+            <Picker
+                Title="Pesquisar por"
+                ItemsSource="{Binding FilterTypes}"
+                SelectedItem="{Binding SelectedFilterType}" />
+
+            <Entry
+                Placeholder="Digite o que deseja pesquisar"
+                Text="{Binding SearchText}"
+                ReturnType="Search"
+                ReturnCommand="{Binding SearchAlunosCommand}" />
+
+            <Grid
+                ColumnDefinitions="*,*"
+                ColumnSpacing="10">
+
+                <Button
+                    Grid.Column="0"
+                    Text="Buscar"
+                    Command="{Binding SearchAlunosCommand}" />
+
+                <Button
+                    Grid.Column="1"
+                    Text="Limpar pesquisa"
+                    Clicked="OnLimparPesquisaClicked"
+                    BackgroundColor="Gray" />
+
+            </Grid>
+
+            <Button
+                Text="+ Novo aluno"
+                Command="{Binding NovoAlunoCommand}" />
+
+        </VerticalStackLayout>
+
+        <ActivityIndicator
+            Grid.Row="2"
+            IsRunning="{Binding IsBusy}"
+            IsVisible="{Binding IsBusy}"
+            HorizontalOptions="Center" />
+
+        <RefreshView
+            Grid.Row="3"
+            IsRefreshing="{Binding IsRefreshing}"
+            Command="{Binding RefreshCommand}">
+
+            <CollectionView
+                ItemsSource="{Binding Alunos}"
+                SelectionMode="None">
+
+                <CollectionView.EmptyView>
+                    <Label
+                        Text="Nenhum aluno encontrado."
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        FontSize="16" />
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+
+                        <Border
+                            Padding="12"
+                            Margin="0,4"
+                            Stroke="#D0D0D0"
+                            StrokeThickness="1">
+
+                            <Grid
+                                ColumnDefinitions="*,Auto"
+                                RowDefinitions="Auto,Auto,Auto"
+                                ColumnSpacing="10"
+                                RowSpacing="4">
+
+                                <Label
+                                    Grid.Row="0"
+                                    Text="{Binding Nome}"
+                                    FontSize="17"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    Grid.Row="1"
+                                    Text="{Binding Cpf, StringFormat='CPF: {0}'}" />
+
+                                <Label
+                                    Grid.Row="2"
+                                    Text="{Binding Email, StringFormat='E-mail: {0}'}" />
+
+                                <VerticalStackLayout
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Grid.RowSpan="3"
+                                    VerticalOptions="Center"
+                                    Spacing="6">
+
+                                    <Button
+                                        Text="Editar"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditarAlunoCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                    <Button
+                                        Text="Excluir"
+                                        BackgroundColor="#C62828"
+                                        TextColor="White"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ExcluirAlunoCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+
+                        </Border>
+
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+</ContentPage>

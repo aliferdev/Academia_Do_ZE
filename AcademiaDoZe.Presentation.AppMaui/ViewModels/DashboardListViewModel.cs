@@ -124,6 +124,6 @@ public partial class DashboardListViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateToLogradourosAsync()
     {
-        await Shell.Current.GoToAsync("//logradouros/logradourosPage");
+        await Shell.Current.GoToAsync("//logradouros");
     }
 }

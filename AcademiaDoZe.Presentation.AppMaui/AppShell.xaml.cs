@@ -1,5 +1,4 @@
-﻿
-// Alifer Granemann
+﻿// Alifer Granemann
 
 using System.Diagnostics;
 using AcademiaDoZe.Presentation.AppMaui.Views;
@@ -18,10 +17,13 @@ public partial class AppShell : Shell
         Navigated += OnShellNavigated;
     }
 
+    // Registra as rotas de navegação das páginas.
     private static void RegisterRoutes()
     {
         Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
         Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
+        Routing.RegisterRoute("aluno", typeof(AlunoPage));
+        Routing.RegisterRoute("matricula", typeof(MatriculaPage));
     }
 
     private void OnShellNavigating(object? sender, ShellNavigatingEventArgs e)
