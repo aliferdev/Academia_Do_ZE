@@ -8,6 +8,9 @@ public class MatriculaDto
 {
     public int Id { get; set; }
 
+    public string NumeroMatricula =>
+        Id > 0 ? $"MAT-{Id:D6}" : "Pendente";
+
     public required AlunoDto AlunoMatricula { get; set; }
 
     public required AppMatriculaPlano Plano { get; set; }

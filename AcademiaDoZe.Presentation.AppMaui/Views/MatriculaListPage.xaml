@@ -11,7 +11,6 @@
     x:DataType="vm:MatriculaListViewModel"
     Title="{Binding Title}">
 
-    <!-- Recursos da Página -->
     <ContentPage.Resources>
 
         <converters:FotoToImageSourceConverter
@@ -23,7 +22,6 @@
         <converters:RestricoesFlagsDisplayConverter
             x:Key="RestricoesDisplay" />
 
-        <!-- Template dos itens da lista -->
         <DataTemplate
             x:Key="MatriculaItemTemplate"
             x:DataType="dto:MatriculaDto">
@@ -48,16 +46,14 @@
                     </SwipeItems>
                 </SwipeView.RightItems>
 
-                <Grid
-                    Padding="1"
-                    Margin="5">
+                <Grid Padding="1" Margin="5">
 
                     <Border
                         Style="{StaticResource CardBorder}"
                         Margin="10">
 
                         <Grid
-                            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                             ColumnDefinitions="*,Auto,Auto">
 
                             <!-- Foto do Aluno -->
@@ -65,7 +61,7 @@
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Grid.ColumnSpan="2"
-                                Grid.RowSpan="7"
+                                Grid.RowSpan="8"
                                 HeightRequest="110"
                                 WidthRequest="110"
                                 StrokeShape="RoundRectangle 12"
@@ -83,9 +79,19 @@
 
                             </Border>
 
-                            <!-- Nome do Aluno -->
+                            <!-- Número da Matrícula -->
                             <Label
                                 Grid.Row="0"
+                                Grid.Column="0"
+                                Text="{Binding NumeroMatricula}"
+                                FontAttributes="Bold"
+                                FontSize="13"
+                                TextColor="{StaticResource Primary}"
+                                Margin="0,0,0,3" />
+
+                            <!-- Nome do Aluno -->
+                            <Label
+                                Grid.Row="1"
                                 Grid.Column="0"
                                 Text="{Binding AlunoMatricula.Nome}"
                                 FontAttributes="Bold"
@@ -95,7 +101,7 @@
 
                             <!-- CPF e Nascimento -->
                             <Label
-                                Grid.Row="1"
+                                Grid.Row="2"
                                 Grid.Column="0"
                                 Margin="0,0,0,4"
                                 FontSize="12"
@@ -114,7 +120,7 @@
 
                             <!-- Plano -->
                             <HorizontalStackLayout
-                                Grid.Row="2"
+                                Grid.Row="3"
                                 Grid.Column="0"
                                 Spacing="8"
                                 Margin="0,0,0,4">
@@ -136,50 +142,23 @@
 
                             <!-- Vigência -->
                             <Label
-                                Grid.Row="3"
+                                Grid.Row="4"
                                 Grid.Column="0"
                                 Margin="0,0,0,3"
                                 FontSize="12">
 
                                 <Label.FormattedText>
                                     <FormattedString>
-                                        <Span
-                                            Text="Vigência: "
-                                            FontAttributes="Bold" />
-
-                                        <Span
-                                            Text="{Binding DataInicio, StringFormat='{0:dd/MM/yyyy}'}" />
-
+                                        <Span Text="Vigência: " FontAttributes="Bold" />
+                                        <Span Text="{Binding DataInicio, StringFormat='{0:dd/MM/yyyy}'}" />
                                         <Span Text=" até " />
-
-                                        <Span
-                                            Text="{Binding DataFim, StringFormat='{0:dd/MM/yyyy}'}" />
+                                        <Span Text="{Binding DataFim, StringFormat='{0:dd/MM/yyyy}'}" />
                                     </FormattedString>
                                 </Label.FormattedText>
 
                             </Label>
 
                             <!-- Objetivo -->
-                            <Label
-                                Grid.Row="4"
-                                Grid.Column="0"
-                                Margin="0,0,0,3"
-                                FontSize="12"
-                                LineBreakMode="TailTruncation">
-
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span
-                                            Text="Objetivo: "
-                                            FontAttributes="Bold" />
-
-                                        <Span Text="{Binding Objetivo}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-
-                            </Label>
-
-                            <!-- Restrições Médicas -->
                             <Label
                                 Grid.Row="5"
                                 Grid.Column="0"
@@ -189,12 +168,25 @@
 
                                 <Label.FormattedText>
                                     <FormattedString>
-                                        <Span
-                                            Text="Restrições: "
-                                            FontAttributes="Bold" />
+                                        <Span Text="Objetivo: " FontAttributes="Bold" />
+                                        <Span Text="{Binding Objetivo}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
 
-                                        <Span
-                                            Text="{Binding RestricoesMedicas, Converter={StaticResource RestricoesDisplay}}" />
+                            </Label>
+
+                            <!-- Restrições Médicas -->
+                            <Label
+                                Grid.Row="6"
+                                Grid.Column="0"
+                                Margin="0,0,0,3"
+                                FontSize="12"
+                                LineBreakMode="TailTruncation">
+
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Restrições: " FontAttributes="Bold" />
+                                        <Span Text="{Binding RestricoesMedicas, Converter={StaticResource RestricoesDisplay}}" />
                                     </FormattedString>
                                 </Label.FormattedText>
 
@@ -202,7 +194,7 @@
 
                             <!-- Observações -->
                             <Label
-                                Grid.Row="6"
+                                Grid.Row="7"
                                 Grid.Column="0"
                                 Text="{Binding ObservacoesRestricoes, StringFormat='Obs: {0}'}"
                                 FontSize="11"
@@ -336,7 +328,6 @@
                         </StackLayout>
                     </CollectionView.EmptyView>
 
-                    <!-- Template dos Itens -->
                     <CollectionView.ItemTemplate>
                         <StaticResource Key="MatriculaItemTemplate" />
                     </CollectionView.ItemTemplate>

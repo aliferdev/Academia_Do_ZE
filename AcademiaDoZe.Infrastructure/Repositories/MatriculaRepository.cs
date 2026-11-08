@@ -38,7 +38,7 @@ public class MatriculaRepository : BaseRepository, IMatriculaRepository
 
             l.id_logradouro,
             l.cep,
-            l.nome,            
+            l.nome AS logradouro_nome,            
             l.bairro,
             l.cidade,
             l.estado,
