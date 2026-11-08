@@ -25,7 +25,7 @@ public class AlunoRepository : BaseRepository, IAlunoRepository
             a.foto,
             l.id_logradouro,
             l.cep,
-            l.nome,
+            l.nome AS logradouro_nome,
             l.bairro,
             l.cidade,
             l.estado,
@@ -603,7 +603,9 @@ public class AlunoRepository : BaseRepository, IAlunoRepository
             }
 
             var logradouro =
-                LogradouroRepository.Map(reader);
+                LogradouroRepository.Map(
+                    reader,
+                    "logradouro_nome");
 
             var result =
                 Aluno.Criar(
@@ -695,10 +697,10 @@ public class AlunoRepository : BaseRepository, IAlunoRepository
             entity.Senha.Valor);
 
         DbProvider.AddParameter(
-    command,
-    "@Foto",
-    entity.Foto is null
-        ? DBNull.Value
-        : entity.Foto.Conteudo);
+            command,
+            "@Foto",
+            entity.Foto is null
+                ? DBNull.Value
+                : entity.Foto.Conteudo);
     }
 }

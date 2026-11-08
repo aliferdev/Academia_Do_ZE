@@ -1,4 +1,4 @@
-// Alifer Granemannn
+// Alifer Granemann
 
 using System.Data.Common;
 using AcademiaDoZe.Domain.Entities;
@@ -215,7 +215,7 @@ public class LogradouroRepository : BaseRepository, ILogradouroRepository
         }
     }
 
-    public static Logradouro Map(DbDataReader reader)
+    public static Logradouro Map(DbDataReader reader, string nomeColumn = "nome")
     {
         try
         {
@@ -223,7 +223,7 @@ public class LogradouroRepository : BaseRepository, ILogradouroRepository
             var result = Logradouro.Criar(
                 id,
                 Convert.ToString(reader["cep"])!,
-                Convert.ToString(reader["nome"])!,
+                Convert.ToString(reader[nomeColumn])!,
                 Convert.ToString(reader["bairro"])!,
                 Convert.ToString(reader["cidade"])!,
                 Convert.ToString(reader["estado"])!,
