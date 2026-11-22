@@ -1,4 +1,5 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using System.Diagnostics;
 using AcademiaDoZe.Presentation.AppMaui.Views;

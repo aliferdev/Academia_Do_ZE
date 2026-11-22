@@ -1,4 +1,5 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Enums;
@@ -59,5 +60,18 @@ public interface IColaboradorService
     Task<bool> TrocarSenhaAsync(
         int id,
         string novaSenha,
+        CancellationToken cancellationToken = default);
+
+    // Controle de acesso
+    Task RegistrarEntradaAsync(
+        int colaboradorId,
+        CancellationToken cancellationToken = default);
+
+    Task RegistrarSaidaAsync(
+        int colaboradorId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> EstaNaAcademiaAsync(
+        int colaboradorId,
         CancellationToken cancellationToken = default);
 }

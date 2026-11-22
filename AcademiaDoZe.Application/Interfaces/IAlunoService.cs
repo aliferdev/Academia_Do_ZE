@@ -1,4 +1,5 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using AcademiaDoZe.Application.DTOs;
 
@@ -27,4 +28,12 @@ public interface IAlunoService
     Task RemoverAsync(int id);
 
     Task TrocarSenhaAsync(int id, string novaSenha);
+
+    Task RegistrarEntradaAsync(int alunoId);
+
+    Task RegistrarSaidaAsync(int alunoId);
+
+    Task<bool> EstaNaAcademiaAsync(int alunoId);
+
+    Task<IEnumerable<AcessoHistoricoDto>> ObterAcessosDeHojeAsync(int alunoId);
 }

@@ -1,10 +1,13 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Enums;
 using AcademiaDoZe.Application.Interfaces;
 using AcademiaDoZe.Application.Mappings;
 using AcademiaDoZe.Application.Security;
+using AcademiaDoZe.Domain.Entities;
+using AcademiaDoZe.Domain.Enums;
 using AcademiaDoZe.Domain.Repositories;
 using AcademiaDoZe.Domain.ValueObjects;
 
@@ -14,15 +17,18 @@ public class ColaboradorService : IColaboradorService
 {
     private readonly Func<IColaboradorRepository> _repoFactory;
     private readonly Func<ILogradouroRepository>? _logradouroRepoFactory;
+    private readonly Func<IAcessoColaboradorRepository>? _acessoRepoFactory;
 
     public ColaboradorService(
         Func<IColaboradorRepository> repoFactory,
-        Func<ILogradouroRepository>? logradouroRepoFactory = null)
+        Func<ILogradouroRepository>? logradouroRepoFactory = null,
+        Func<IAcessoColaboradorRepository>? acessoRepoFactory = null)
     {
         _repoFactory = repoFactory
             ?? throw new ArgumentNullException(nameof(repoFactory));
 
         _logradouroRepoFactory = logradouroRepoFactory;
+        _acessoRepoFactory = acessoRepoFactory;
     }
 
     public async Task<bool> CpfJaExisteAsync(
@@ -275,14 +281,11 @@ public class ColaboradorService : IColaboradorService
         }
 
         var hash = PasswordHasher.Hash(novaSenha);
-
         var senhaHashVO = Senha.Criar(hash);
 
         if (senhaHashVO.IsFailure)
-        {
             throw new InvalidOperationException(
                 "Falha ao gerar hash da nova senha.");
-        }
 
         return await _repoFactory()
             .TrocarSenha(
@@ -358,7 +361,7 @@ public class ColaboradorService : IColaboradorService
                 PasswordHasher.Hash(colaboradorDto.Senha);
         }
 
-        Domain.Entities.Logradouro? logradouro = null;
+        Logradouro? logradouro = null;
 
         if (_logradouroRepoFactory != null &&
             colaboradorDto.Endereco != null &&
@@ -369,8 +372,7 @@ public class ColaboradorService : IColaboradorService
                     colaboradorDto.Endereco.Id,
                     cancellationToken)
                 ?? throw new KeyNotFoundException(
-                    $"Logradouro com ID " +
-                    $"{colaboradorDto.Endereco.Id} não encontrado.");
+                    $"Logradouro com ID {colaboradorDto.Endereco.Id} não encontrado.");
         }
 
         var colaborador = colaboradorDto.ToEntity(logradouro);
@@ -394,8 +396,7 @@ public class ColaboradorService : IColaboradorService
                 colaboradorDto.Id,
                 cancellationToken)
             ?? throw new KeyNotFoundException(
-                $"Colaborador com ID " +
-                $"{colaboradorDto.Id} não encontrado.");
+                $"Colaborador com ID {colaboradorDto.Id} não encontrado.");
 
         var cpfResult = Cpf.Criar(colaboradorDto.Cpf);
 
@@ -414,8 +415,7 @@ public class ColaboradorService : IColaboradorService
                 cancellationToken))
         {
             throw new InvalidOperationException(
-                $"Já existe outro colaborador cadastrado " +
-                $"com o CPF {colaboradorDto.Cpf}.");
+                $"Já existe outro colaborador cadastrado com o CPF {colaboradorDto.Cpf}.");
         }
 
         if (!string.IsNullOrWhiteSpace(colaboradorDto.Email) &&
@@ -441,8 +441,7 @@ public class ColaboradorService : IColaboradorService
                     cancellationToken))
             {
                 throw new InvalidOperationException(
-                    $"Já existe outro colaborador cadastrado " +
-                    $"com o Email {colaboradorDto.Email}.");
+                    $"Já existe outro colaborador cadastrado com o Email {colaboradorDto.Email}.");
             }
         }
 
@@ -464,7 +463,7 @@ public class ColaboradorService : IColaboradorService
                 PasswordHasher.Hash(colaboradorDto.Senha);
         }
 
-        Domain.Entities.Logradouro? logradouro = null;
+        Logradouro? logradouro = null;
 
         int logradouroId =
             colaboradorDto.Endereco != null &&
@@ -480,8 +479,7 @@ public class ColaboradorService : IColaboradorService
                     logradouroId,
                     cancellationToken)
                 ?? throw new KeyNotFoundException(
-                    $"Logradouro com ID " +
-                    $"{logradouroId} não encontrado.");
+                    $"Logradouro com ID {logradouroId} não encontrado.");
         }
 
         var colaboradorAtualizado =
@@ -513,5 +511,95 @@ public class ColaboradorService : IColaboradorService
             .Remover(
                 id,
                 cancellationToken);
+    }
+
+    // Controle de entrada e saída
+
+    public async Task RegistrarEntradaAsync(
+        int colaboradorId,
+        CancellationToken cancellationToken = default)
+    {
+        var acessoRepo = _acessoRepoFactory
+            ?? throw new InvalidOperationException(
+                "Repositório de acesso não configurado.");
+
+        var colaborador = await _repoFactory()
+            .ObterPorId(colaboradorId, cancellationToken)
+            ?? throw new KeyNotFoundException(
+                $"Colaborador com ID {colaboradorId} não encontrado.");
+
+        var ultimoAcesso = await acessoRepo()
+            .ObterUltimoAcesso(colaboradorId, cancellationToken);
+
+        if (ultimoAcesso?.TipoEvento == TipoEventoAcesso.Entrada)
+            throw new InvalidOperationException(
+                "O colaborador já está na academia.");
+
+        var resultado = AcessoColaborador.Criar(
+            0,
+            colaborador,
+            TipoEventoAcesso.Entrada,
+            DateTime.Now);
+
+        if (resultado.IsFailure)
+            throw new InvalidOperationException(
+                string.Join(
+                    ", ",
+                    resultado.Notifications.Select(n => n.Mensagem)));
+
+        await acessoRepo().Adicionar(
+            resultado.Value!,
+            cancellationToken);
+    }
+
+    public async Task RegistrarSaidaAsync(
+        int colaboradorId,
+        CancellationToken cancellationToken = default)
+    {
+        var acessoRepo = _acessoRepoFactory
+            ?? throw new InvalidOperationException(
+                "Repositório de acesso não configurado.");
+
+        var colaborador = await _repoFactory()
+            .ObterPorId(colaboradorId, cancellationToken)
+            ?? throw new KeyNotFoundException(
+                $"Colaborador com ID {colaboradorId} não encontrado.");
+
+        var ultimoAcesso = await acessoRepo()
+            .ObterUltimoAcesso(colaboradorId, cancellationToken);
+
+        if (ultimoAcesso?.TipoEvento != TipoEventoAcesso.Entrada)
+            throw new InvalidOperationException(
+                "O colaborador não possui uma entrada registrada.");
+
+        var resultado = AcessoColaborador.Criar(
+            0,
+            colaborador,
+            TipoEventoAcesso.Saida,
+            DateTime.Now);
+
+        if (resultado.IsFailure)
+            throw new InvalidOperationException(
+                string.Join(
+                    ", ",
+                    resultado.Notifications.Select(n => n.Mensagem)));
+
+        await acessoRepo().Adicionar(
+            resultado.Value!,
+            cancellationToken);
+    }
+
+    public async Task<bool> EstaNaAcademiaAsync(
+        int colaboradorId,
+        CancellationToken cancellationToken = default)
+    {
+        var acessoRepo = _acessoRepoFactory
+            ?? throw new InvalidOperationException(
+                "Repositório de acesso não configurado.");
+
+        var ultimoAcesso = await acessoRepo()
+            .ObterUltimoAcesso(colaboradorId, cancellationToken);
+
+        return ultimoAcesso?.TipoEvento == TipoEventoAcesso.Entrada;
     }
 }

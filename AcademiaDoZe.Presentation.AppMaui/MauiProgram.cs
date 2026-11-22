@@ -1,4 +1,5 @@
-﻿// Alifer Granemann
+﻿
+// Alifer Granemann
 
 using AcademiaDoZe.Presentation.AppMaui.ViewModels;
 using AcademiaDoZe.Presentation.AppMaui.Views;
@@ -40,6 +41,8 @@ public static class MauiProgram
         builder.Services.AddTransient<MatriculaListViewModel>();
         builder.Services.AddTransient<MatriculaViewModel>();
 
+        builder.Services.AddTransient<AcessoListViewModel>();
+
         // Registrar Views
         builder.Services.AddTransient<DashboardListPage>();
 
@@ -56,6 +59,8 @@ public static class MauiProgram
 
         builder.Services.AddTransient<MatriculaListPage>();
         builder.Services.AddTransient<MatriculaPage>();
+
+        builder.Services.AddTransient<AcessoListPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

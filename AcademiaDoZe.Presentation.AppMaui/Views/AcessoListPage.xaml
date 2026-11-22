@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="AcademiaDoZe.Presentation.AppMaui.Views.AcessoListPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AcademiaDoZe.Presentation.AppMaui.ViewModels"
+    xmlns:converters="clr-namespace:AcademiaDoZe.Presentation.AppMaui.Converters"
+    x:DataType="vm:AcessoListViewModel"
+    Title="Controle de Acesso">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:FotoToImageSourceConverter
+                x:Key="FotoConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label
+                Text="Controle de Acesso"
+                FontSize="26"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Pesquise um aluno ou colaborador pelo CPF para registrar sua entrada ou saída."
+                FontSize="14"
+                HorizontalTextAlignment="Center" />
+
+            <Label
+                Text="Tipo de pessoa"
+                FontAttributes="Bold" />
+
+            <Picker
+                Title="Selecione o tipo"
+                ItemsSource="{Binding TiposPessoa}"
+                SelectedItem="{Binding TipoPessoa}" />
+
+            <Label
+                Text="CPF"
+                FontAttributes="Bold" />
+
+            <Entry
+                Placeholder="Digite o CPF"
+                Keyboard="Numeric"
+                Text="{Binding Cpf}" />
+
+            <Button
+                Text="Buscar pessoa"
+                Command="{Binding BuscarCommand}" />
+
+            <Label
+                Text="{Binding Mensagem}"
+                TextColor="Red"
+                HorizontalTextAlignment="Center" />
+
+            <VerticalStackLayout
+                IsVisible="{Binding PessoaEncontrada}"
+                Spacing="12">
+
+                <BoxView
+                    HeightRequest="1"
+                    Color="Gray" />
+
+                <Label
+                    Text="Pessoa encontrada"
+                    FontSize="20"
+                    FontAttributes="Bold" />
+
+                <Image
+                    Source="{Binding PessoaSelecionada.Foto, Converter={StaticResource FotoConverter}}"
+                    HeightRequest="140"
+                    WidthRequest="140"
+                    Aspect="AspectFill"
+                    HorizontalOptions="Center" />
+
+                <Label
+                    Text="{Binding PessoaSelecionada.Nome}"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center" />
+
+                <Label
+                    Text="{Binding PessoaSelecionada.Cpf, StringFormat='CPF: {0}'}"
+                    HorizontalTextAlignment="Center" />
+
+                <Label
+                    Text="{Binding StatusAcesso}"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center" />
+
+                <BoxView
+                    HeightRequest="1"
+                    Color="Gray" />
+
+                <Label
+                    Text="Histórico de hoje"
+                    FontSize="18"
+                    FontAttributes="Bold" />
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="5">
+
+                        <Label
+                            Text="Última entrada"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="Center" />
+
+                        <Label
+                            Text="{Binding HorarioEntrada}"
+                            FontSize="20"
+                            HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout
+                        Grid.Column="1"
+                        Spacing="5">
+
+                        <Label
+                            Text="Última saída"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="Center" />
+
+                        <Label
+                            Text="{Binding HorarioSaida}"
+                            FontSize="20"
+                            HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                </Grid>
+
+                <Button
+                    Text="Registrar Entrada"
+                    BackgroundColor="#2E7D32"
+                    TextColor="White"
+                    Command="{Binding RegistrarEntradaCommand}" />
+
+                <Button
+                    Text="Registrar Saída"
+                    BackgroundColor="#C62828"
+                    TextColor="White"
+                    Command="{Binding RegistrarSaidaCommand}" />
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
