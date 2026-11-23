@@ -40,7 +40,7 @@ public class AcessoColaborador : Entity, IAggregateRoot
                 "TIPO_EVENTO_INVALIDO");
 
         if (dataHora.TimeOfDay < new TimeSpan(6, 0, 0) ||
-            dataHora.TimeOfDay > new TimeSpan(22, 0, 0))
+            dataHora.TimeOfDay >= new TimeSpan(24, 0, 0))
         {
             return Result<AcessoColaborador>.Failure(
                 "DataHora",

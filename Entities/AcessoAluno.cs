@@ -36,7 +36,7 @@ public class AcessoAluno : Entity, IAggregateRoot
             return Result<AcessoAluno>.Failure("TipoEvento", "TIPO_EVENTO_INVALIDO");
 
         if (dataHora.TimeOfDay < new TimeSpan(6, 0, 0) ||
-            dataHora.TimeOfDay > new TimeSpan(22, 0, 0))
+            dataHora.TimeOfDay >= new TimeSpan(24, 0, 0))
         {
             return Result<AcessoAluno>.Failure(
                 "DataHora",

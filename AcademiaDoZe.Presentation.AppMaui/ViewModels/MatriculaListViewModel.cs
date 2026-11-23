@@ -1,4 +1,5 @@
-﻿using AcademiaDoZe.Application.DTOs;
+﻿
+using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -11,6 +12,7 @@ public partial class MatriculaListViewModel : BaseViewModel
     [
         "Id",
         "Id Aluno",
+        "CPF",
         "Ativas",
         "Vencendo em dias"
     ];
@@ -54,8 +56,6 @@ public partial class MatriculaListViewModel : BaseViewModel
         _matriculaService = matriculaService;
         Title = "Matriculas";
     }
-
-    // Métodos de comando para navegação e operações CRUD
 
     [RelayCommand]
     private async Task AddMatriculaAsync()
@@ -110,18 +110,36 @@ public partial class MatriculaListViewModel : BaseViewModel
             IsBusy = true;
 
             using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
-
-            // Limpa a lista atual
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                Matriculas.Clear();
-            });
+                TimeSpan.FromSeconds(10));
 
             IEnumerable<MatriculaDto> resultados = [];
 
-            // Busca as matrículas de acordo com o filtro
-            if (string.IsNullOrWhiteSpace(SearchText))
+            if (SelectedFilterType == "CPF")
+            {
+                var cpf = new string(
+                    SearchText.Where(char.IsDigit).ToArray());
+
+                if (cpf.Length != 11)
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                        "Aviso",
+                        "Informe um CPF válido com 11 dígitos.",
+                        "OK");
+
+                    return;
+                }
+
+                var todasMatriculas = await _matriculaService
+                    .ObterTodasAsync(cts.Token);
+
+                resultados = todasMatriculas.Where(m =>
+                    m.AlunoMatricula != null &&
+                    new string(
+                        (m.AlunoMatricula.Cpf ?? "")
+                        .Where(char.IsDigit)
+                        .ToArray()) == cpf);
+            }
+            else if (string.IsNullOrWhiteSpace(SearchText))
             {
                 if (SelectedFilterType == "Ativas")
                 {
@@ -169,7 +187,15 @@ public partial class MatriculaListViewModel : BaseViewModel
             }
             else if (SelectedFilterType == "Ativas")
             {
-                int.TryParse(SearchText.Trim(), out int alunoId);
+                if (!int.TryParse(SearchText.Trim(), out int alunoId))
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                        "Aviso",
+                        "Informe um ID de aluno válido.",
+                        "OK");
+
+                    return;
+                }
 
                 resultados = await _matriculaService
                     .ObterAtivasAsync(alunoId, cts.Token) ?? [];
@@ -190,13 +216,12 @@ public partial class MatriculaListViewModel : BaseViewModel
                 }
             }
 
-            // Atualiza a coleção na thread principal
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
+                Matriculas.Clear();
+
                 foreach (var item in resultados)
-                {
                     Matriculas.Add(item);
-                }
 
                 OnPropertyChanged(nameof(Matriculas));
             });
@@ -225,31 +250,20 @@ public partial class MatriculaListViewModel : BaseViewModel
             IsBusy = true;
 
             using var cts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(5));
-
-            // Limpa a lista atual antes de carregar novos dados
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                Matriculas.Clear();
-                OnPropertyChanged(nameof(Matriculas));
-            });
+                TimeSpan.FromSeconds(10));
 
             var matriculasList = await _matriculaService
                 .ObterTodasAsync(cts.Token);
 
-            if (matriculasList != null)
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                // Garantir que a atualização da UI aconteça na thread principal
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    foreach (var matricula in matriculasList)
-                    {
-                        Matriculas.Add(matricula);
-                    }
+                Matriculas.Clear();
 
-                    OnPropertyChanged(nameof(Matriculas));
-                });
-            }
+                foreach (var matricula in matriculasList)
+                    Matriculas.Add(matricula);
+
+                OnPropertyChanged(nameof(Matriculas));
+            });
         }
         catch (Exception ex)
         {
